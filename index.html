@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>郵便番号から住所検索</title>
+		
+		<style>
+			form {
+				display: inline-block;
+				padding: 0 20px;
+			}
+
+			input[type='text']{
+			display: inline-block;
+				padding: 5px 10px;
+			}
+			input#postal_code{
+				width: 90px;
+			}
+			input::placeholder{
+				font-size: 14px;
+			}
+			.btn{
+				border: none;
+				outline: none;
+				display: inline-block;
+				padding: 5px 10px;
+				cursor: pointer;
+				font-size: 16px;
+				color: #fff;
+			}
+			.btn:hover{
+				opacity: 0.8;
+			}
+			.btn_search{
+				background-color: #4caf50;
+			}
+			
+			.btn_send{
+				background-color: #3498db;
+				width: 100%; 
+			}
+		</style>
+	</head>
+	<body>
+		<h2>郵便番号から住所検索</h2>
+		<form action="#">
+			<p>
+				Postal Code:<br>
+				<input type='text' name='postal_code' id='postal_code' placeholder="郵便番号" maxlength='7'>
+				<button class="btn btn_search">Search</button>
+			</p>
+			<p>
+				Address:<br>
+				<input type='text' name='address' id='address' placeholder="住所">
+			</p>
+			<p>
+				<input type="submit" name="btn_send" value="登録" class="btn btn_send">
+			</p>
+		</form>
+		
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+		<script>
+	//==================================================================================================			
+
+				/* 
+					API có dang gửi request GET zipcode = mã bưu điện(815-0033 hoặc 8150033)
+					đến url 'https://zipcloud.ibsnet.co.jp/api/search';
+					https://zipcloud.ibsnet.co.jp/api/search?zipcode=7830060
+					
+					Kết quả trả về kiểu JSONP(Object):
+					{
+						"message": null,
+						"results": [
+							{
+								"address1": "福岡県",
+								"address2": "福岡市南区",
+								"address3": "大橋",
+								"kana1": "ﾌｸｵｶｹﾝ",
+								"kana2": "ﾌｸｵｶｼﾐﾅﾐｸ",
+								"kana3": "ｵｵﾊｼ",
+								"prefcode": "40",
+								"zipcode": "8150033"
+							}
+						],
+						"status": 200
+					}
+				
+				*/
+				
+	//==================================================================================================	
+	
+			$(document).ready(function(){
+				// Khi click vào btn_search thì thực hiện tìm địa chỉ
+				$('button.btn_search').click(function(){
+					// Lấy mã bưu điện
+					var zipcode = $('input#postal_code').val();
+					// Tạo biến để dùng cho ajax
+					var data = {zipcode: zipcode,}
+					$.ajax({
+						url: 'https://zipcloud.ibsnet.co.jp/api/search', // url file xử lý (Ở đây là url của API)
+						method: 'GET',           						 // Vì url có dạng ?zipcode=8150033 => GET
+						data: data,
+						dataType: 'jsonp',
+						success: function(data){						 // Kết quả trả vào biến data
+							if(data.status === 200){					 // status = 200 là không có lỗi, lấy được kết quả.
+								for(var i=0; i<data.results.length; i++){// results: kết quả tìm kiếm Địa chỉ
+									var result = data.results[i];		 // results: có dạng mảng nên phải duyệt mảng
+								}
+								var str_result = result.address1+result.address2+result.address3
+								$('input#address').val(str_result);
+							}else{							             //ngược lại status = 400, 500 là lỗi
+								console.log(data.message);				 // .message: Chi tiết lỗi
+							}
+						},
+						error: function(xhr,ajaxOptions,thrownError){
+							alert(xhr.status);
+							alert(thrownError);
+						}
+					})
+					
+					return false //Khi click vào button thì không gửi request => không load lại trang web
+				});
+			});
+		</script>
+	</body>
+</html>
